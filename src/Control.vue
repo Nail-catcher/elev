@@ -1,14 +1,16 @@
 <template>
   <div id="content">
     <div id="well" ref="well" :style="{height: height + 'px'}">
-      <Elevator v-for="(task, index) in newTasks" :key="task" :newtask="task" :floors="maxFloor" :height="height" :id="index" @floorchange="update"/>
+      <Elevator v-for="(task, index) in newTasks" :key="index" :newtask="task" :floors="maxFloor" :height="height" :id="index" @floorchange="update"/>
     </div>
-    <div v-for="i in [0,1]"  :key="i" class="door">
-      <Door :maxbuildingfloor="maxFloor" :pos="positions[i]" :dir="directions[i]" :toup="upList" :todown="downList" :todst="dstList[i]" :id="i+1" @up="up" @down="down"/>
+    <div v-for="id in ids" :key="id" class="door">
+      <Door :maxbuildingfloor="maxFloor" :pos="positions[id]" :dir="directions[id]" :toup="upList" :todown="downList" :todst="dstList[id]" :id="id+1" @up="up" @down="down"/>
     </div>
     <div id="panel">
-      <select @change="changeKey($event)"><option v-for="id in ids" :key="id" :value="id">{{id + 1}}</option></select>
-      <label for="dstfloor">Вниз：</label>
+      <p>Панель</p>
+      <label>Какой лифт：</label>
+      <select @change="changeKey($event)"><option v-for="id in ids" :key="id" :value="id"> {{id + 1}}</option></select>
+      <label for="dstfloor">Какой этаж：</label>
       <input type="number" id="dstfloor" :step="step" ref="panelinput" :value="dstFloor" @input="updateFloor($event.target.value)" @keyup.enter="addDst">
     </div>
   </div>
@@ -17,43 +19,42 @@
 <script>
   import Door from './components/Door.vue';
   import Elevator from './components/Elevator.vue';
-
   export default {
-  name: 'control',
-  data () {
+    name: 'control',
+    data () {
       return {
-      //elevator ID
-      //just for v-for
-      ids: [0, 1],
-      //active elevator ID
-      //for <select>
-      activeID: 0,
-      //temporary floor input from panel
-      dstFloor: 1,
-      //step value for <input> in panel
-      step: Math.ceil(this.floor / 10),
-      //store positions of all elevators
-      //Assume that all elevators start from 1st floor
-      positions: [1, 1],
-      //store directions of all elevators
-      //0 for still, 1 for up, 2 for down
-      directions: [0, 0],
-      //max floor of this building
-      maxFloor: this.floor,
-      //floor list waiting for up
-      upList: [],
-      //floor list waiting for down
-      downList: [],
+        //elevator ID
+        //just for v-for
+        ids: [0,1],
+        //active elevator ID
+        //for <select>
+        activeID: 0,
+        //temporary floor input from panel
+        dstFloor: 1,
+        //step value for <input> in panel
+        step: Math.ceil(this.floor / 10),
+        //store positions of all elevators
+        //Assume that all elevators start from 1st floor
+        positions: [1, 1],
+        //store directions of all elevators
+        //0 for still, 1 for up, 2 for down
+        directions: [0, 0],
+        //max floor of this building
+        maxFloor: this.floor,
+        //floor list waiting for up
+        upList: [],
+        //floor list waiting for down
+        downList: [],
         //store list of destination floors which comes from button input
         //just for correct door-open behavior.
         //Destination information is isolated between elevators
-        dstList: [[], []],
-      //elevator new tasks
-      newTasks: [{}, {}],
-      //height of DOM div#well
-      height: 0
+        dstList: [[0, 0], [0, 0]],
+        //elevator new tasks
+        newTasks: [{}, {}],
+        //height of DOM div#well
+        height: 0
       }
-  },
+    },
     props: {
       floor: {
         require: true
@@ -65,118 +66,118 @@
         this.height = this.$el.clientHeight;
       });
     },
-  methods: {
-  //listen to `up` event from elevator door
-    up (floor) {
-    if (this.upList.indexOf(floor) == -1) {
-      this.upList.push(floor);
-      this.allocate(floor, 1);
-    }
-    },
-  //listen to `down` event from elevator door
-    down (floor) {
-    if (this.downList.indexOf(floor) == -1) {
-      this.downList.push(floor);
-      this.allocate(floor, 2);
-    }
-    },
-  //allocate elevator tasks
-    allocate (f, d) {
-    //Notice: Assume that elevator 1 has higher priority
-    let dst = f,
-    d1 = this.directions[0],
-    d2 = this.directions[1],
-    p1 = this.positions[0],
-    p2 = this.positions[1];
-    //allocate tasks
-    //3 conditions: pick up; still; different directions
-    //pick up or still
-    if (d1 == 0 || (d1 == 1 && p1 < dst) || (d1 == 2 && p1 > dst)) {
-      if (d2 == 0 || (d2 == 1 && p2 < dst) || (d2 == 2 && p2 > dst)) {
-      if (Math.abs(p1 - dst) > Math.abs(p2 - dst)) {
-        this.newTasks.splice(1, 1, {t: dst, d: d});
-        return;
-      }
-      }
-      this.newTasks.splice(0, 1, {t: dst, d: d});
-    //different directions
-    } else {
-      if ((d2 == 1 && p2 < dst) || (d2 == 2 && p2 > dst)) {
-    this.newTasks.splice(1, 1, {t: dst, d: d});
-      } else {
-    if (Math.abs(p1 - dst) > Math.abs(p2 - dst)) {
-      this.newTasks.splice(1, 1, {t: dst, d: d});
-    } else {
-      this.newTasks.splice(0, 1, {t: dst, d: d});
-    }
-      }
-    }
-    },
-  //update positions and directions together with uplist and downlist
-    update (pos, dir, key) {
+    methods: {
+    //listen to `up` event from elevator door
+      up (floor) {
+        if (this.upList.indexOf(floor) == -1) {
+          this.upList.push(floor);
+          this.allocate(floor, 1);
+        }
+      },
+    //listen to `down` event from elevator door
+      down (floor) {
+        if (this.downList.indexOf(floor) == -1) {
+          this.downList.push(floor);
+          this.allocate(floor, 2);
+        }
+      },
+    //allocate elevator tasks
+      allocate (f, d) {
+        //Notice: Assume that elevator 1 has higher priority
+        let dst = f,
+          d1 = this.directions[0],
+          d2 = this.directions[1],
+          p1 = this.positions[0],
+          p2 = this.positions[1];
+        //allocate tasks
+        //3 conditions: pick up; still; different directions
+        //pick up or still
+        if (d1 == 0 || (d1 == 1 && p1 < dst) || (d1 == 2 && p1 > dst)) {
+          if (d2 == 0 || (d2 == 1 && p2 < dst) || (d2 == 2 && p2 > dst)) {
+            if (Math.abs(p1 - dst) > Math.abs(p2 - dst)) {
+              this.newTasks.splice(1, 1, {t: dst, d: d});
+              return;
+            }
+          }
+          this.newTasks.splice(0, 1, {t: dst, d: d});
+        //different directions
+        } else {
+          if ((d2 == 1 && p2 < dst) || (d2 == 2 && p2 > dst)) {
+          this.newTasks.splice(1, 1, {t: dst, d: d});
+          } else {
+          if (Math.abs(p1 - dst) > Math.abs(p2 - dst)) {
+            this.newTasks.splice(1, 1, {t: dst, d: d});
+          } else {
+            this.newTasks.splice(0, 1, {t: dst, d: d});
+          }
+          }
+        }
+      },
+    //update positions and directions together with uplist and downlist
+      update (pos, dir, key) {
         //Be careful !!! Use splice() instead of []
         //or changes will not be detected
-    this.positions.splice(key, 1, pos);
-    this.directions.splice(key, 1, dir);
+        this.positions.splice(key, 1, pos);
+        this.directions.splice(key, 1, dir);
         let p, self = this;
         
-    if (dir <= 1 && (p = this.upList.indexOf(pos), p != -1)) {
-      setTimeout(function(){ self.upList.splice(p, 1); }, 1000);
-    } else if (dir != 1 && (p = this.downList.indexOf(pos), p != -1)) {
-      setTimeout(function(){ self.downList.splice(p, 1); }, 1000);
-    }
+        if (dir <= 1 && (p = this.upList.indexOf(pos), p != -1)) {
+          setTimeout(function(){ self.upList.splice(p, 1); }, 1000);
+        } else if (dir != 1 && (p = this.downList.indexOf(pos), p != -1)) {
+          setTimeout(function(){ self.downList.splice(p, 1); }, 1000);
+        }
         //No division between up/downList & dstList
         //dstList also need checking
         if (p = this.dstList[key].indexOf(pos), p != -1) {
           setTimeout(function(){ self.dstList[key].splice(p, 1); }, 1000);
         }
-    },
-  //update floor destination input from elevator panel
-    updateFloor (value) {
-    value = parseInt(value);
-      if (!isNaN(value) && Number.isInteger(value) && value > 0 && value <= this.maxFloor) {
-        this.dstFloor = value;
-      }
+      },
+    //update floor destination input from elevator panel
+      updateFloor (value) {
+        value = parseInt(value);
+        if (!isNaN(value) && Number.isInteger(value) && value > 0 && value <= this.maxFloor) {
+          this.dstFloor = value;
+        }
         this.$refs.panelinput.value = this.dstFloor;
-    },
-  //switch panel ownership
-    changeKey (event) {
-    this.activeID = parseInt(event.target.value);
-    },
-  //add floor input from panel input
-    addDst () {
+      },
+    //switch panel ownership
+      changeKey (event) {
+        this.activeID = parseInt(event.target.value);
+      },
+    //add floor input from panel input
+      addDst () {
         this.dstList[this.activeID].push(this.dstFloor);
-    let n = {t: this.dstFloor, d: 0};
-    this.newTasks.splice(this.activeID, 1, n);
-    },
+        let n = {t: this.dstFloor, d: 0};
+        this.newTasks.splice(this.activeID, 1, n);
+      },
     //adjust resize event of Window
       adjustResize () {
         this.height = this.$el.clientHeight;
       }
-  },
-  components: {
-    Door: Door,
-    Elevator: Elevator
-  }
+    },
+    components: {
+      Door: Door,
+      Elevator: Elevator
+    }
   }
 </script>
 
 <style>
   #content{
-  width: 100%;
+    width: 100%;
     position: relative;
   }
   #well{
-  width: 100px;
-  height: 100%;
-  min-height: 600px;
-  position: relative;
-  float: right;
-  border: 1px solid #333;
-  padding: 0 2px;
+    width: 100px;
+    height: 100%;
+    min-height: 600px;
+    position: relative;
+    float: right;
+    border: 1px solid #333;
+    padding: 0 2px;
   }
   #panel{
-  position: fixed;
+    position: fixed;
     bottom: 30px;
     height: 90px;
     width: 357px;

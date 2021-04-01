@@ -36,11 +36,11 @@
     </style>
   </head>
   <body>
-    <div id="wrapper" :class="style">
+    <div id="app" :class="style">
       <transition mode="out-in">
         <component :is="view" @start="change" :floor="floor"></component>
       </transition>
     </div>
-    <script src="/dist/build.js"></script>
+    <script src="./dist/build.js"></script>
   </body>
 </html>

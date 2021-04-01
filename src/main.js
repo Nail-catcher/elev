@@ -2,14 +2,13 @@ import Vue from 'vue'
 import Preface from './Preface.vue'
 
 import Control from './Control.vue'
-//import Door from './Door.vue' //just for test
 
 new Vue({
   el: "#wrapper",
   data:{
   view: 'Preface',
   style: "preface",
-  floor: 10
+  floor: 5
   },
   methods: {
   change (floor) {
@@ -24,13 +23,3 @@ new Vue({
   }
 });
 
-//tests
-// new Vue({
-// 	el: "#test",
-// 	data: {
-// 	  flag: false
-// 	},
-// 	components: {
-// 	  Door: Door
-// 	}
-// })

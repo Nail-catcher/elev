@@ -7,12 +7,8 @@
     name: 'elevator',
     data () {
       return {
-        //current position
         pos: 1,
-        //togo list
         tasks: [],
-        //direction
-        //0 for still, 1 for up, 2 for down
         dir: 0
       }
     },
@@ -21,7 +17,6 @@
       this.pos = 1;
     },
     methods: {
-    //recursively move to next destination until tasks list is empty
       move () {
         if (this.tasks.length == 0) {
           this.dir = 0;
@@ -46,13 +41,7 @@
       }
     },
     computed: {
-      // //style of a single elevator
-      // Unknown reason for not working
-      // elevatorStyle: {
-      //   height: (this.height / this.floors) + 'px',
-      //   bottom: (this.pos * this.height / this.floors) + 'px',
-      //   left: (0 + this.id * 52) + 'px'
-      // }
+      
     },
     watch: {
       newtask (val) {
@@ -63,20 +52,17 @@
         if (this.tasks.length == 0) {
           this.tasks.push(val);
           let self = this;
-          //asynchronic call move()
            var promise = new Promise(function(resolve, reject){
              self.move();
            });
           return;
         }
-        //people in the elevator choose the destination
         if (val.d == 0) {
           let tmp = (val.t - this.pos) * (this.tasks[0].t - val.t);
           if (tmp > 0 || val.t == this.pos) {
             this.tasks.unshift(val);
             return;
           } else if (tmp < 0) {
-            //give this.dir the right direction
             if ((this.dir - 1.5) * (val.t - this.pos) < 0) {
               val.d = this.dir;
             } else {
@@ -86,13 +72,11 @@
             return;
           }
         }
-        //look for appropriate position
         while (i < this.tasks.length) {
           if (this.tasks[i].d == val.d) {
             while (i < this.tasks.length && (this.tasks[i].d != val.d || (val.d == 1 && this.tasks[i].t < val.t) || (val.d == 2 && this.tasks[i].t > val.t))) {
               i++;
             }
-            //avoid duplicated insertion
             if (i == this.tasks.length) {
               this.tasks.splice(i, 0, val);
             } else if (this.tasks[i].t != val.t) {

@@ -25,8 +25,8 @@ export default {
       this.$refs.input.value = this.floor;
     },
     start () {
-      if (this.floor > 200 || this.floor < 1) {
-        alert('Слишком много этажей');
+      if (this.floor > 999 || this.floor < 1) {
+        alert('Давай без самодеятельности');
         this.floor = 0;
         return;
       }
@@ -35,9 +35,11 @@ export default {
   },
   computed: {
     title () {
-      if (this.floor > 50) {
+      if (this.floor > 100) {
         return "Небоскрёб";
-      } else if (this.floor > 10) {
+      } else if (this.floor > 50) {
+        return "Высокое здание";
+      }else if (this.floor > 10) {
         return "Обычное здание";
       } else if (this.floor > 0) {
         return "Небольшое здание";
