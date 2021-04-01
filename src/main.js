@@ -1,8 +1,36 @@
 import Vue from 'vue'
-import App from './App.vue'
+import Preface from './Preface.vue'
 
-Vue.config.productionTip = false
+import Control from './Control.vue'
+//import Door from './Door.vue' //just for test
 
 new Vue({
-  render: h => h(App),
-}).$mount('#app')
+  el: "#wrapper",
+  data:{
+  view: 'Preface',
+  style: "preface",
+  floor: 10
+  },
+  methods: {
+  change (floor) {
+    this.view = 'Elevator';
+    this.style = 'content';
+    this.floor = floor;
+  }
+},
+  components: {
+  Preface: Preface,
+    Elevator: Control
+  }
+});
+
+//tests
+// new Vue({
+// 	el: "#test",
+// 	data: {
+// 	  flag: false
+// 	},
+// 	components: {
+// 	  Door: Door
+// 	}
+// })
